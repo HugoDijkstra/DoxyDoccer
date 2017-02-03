@@ -2,24 +2,34 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 void showHelp();
 void documentFile(std::string path);
 void documentAllFiles();
 
+std::string ss;
+
+std::std::vector<std::string> variables;
+std::std::vector<std::string> functions;
+
 int main(int argc, char const *argv[]) {
-  std::string ss = argv[1];
+  if (argc > 1)
+    ss = argv[1];
+  else {
+    showHelp();
+    return 1;
+  }
   switch (argc) {
-  case 0:
+  case 1:
     showHelp();
     return 0;
     break;
-  case 1:
+  case 2:
     if (ss == "-all")
       documentAllFiles();
     else
       documentFile(ss);
-    return 1;
     break;
   }
   return 0;
@@ -30,10 +40,16 @@ void showHelp() { std::cout << "usage: " << std::endl; }
 void documentFile(std::string path) {
   std::cout << "reading file" << std::endl;
   std::ifstream openFile;
-  openFile.open("path", std::ifstream::in);
+  openFile.open(path.c_str(), std::ifstream::in);
 
-  std::cout << openFile << std::endl;
-
+  std::string line;
+  if (openFile.is_open()) {
+    while (getline(openFile, line)) {
+    }
+  } else {
+    std::cout << "File not found" << std::endl;
+    return;
+  }
   openFile.close();
 }
 
