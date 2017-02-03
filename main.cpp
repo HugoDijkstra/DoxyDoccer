@@ -7,7 +7,7 @@
 void showHelp();
 void documentFile(std::string path);
 void documentAllFiles();
-bool checkIfContainsWord(std::vector<std::string> v, std::string word);
+bool checkIfVectorContainsWord(std::vector<std::string> v, std::string word);
 
 std::string ss;
 
@@ -45,26 +45,60 @@ void documentFile(std::string path) {
 
   std::string line;
   if (openFile.is_open()) {
+    // get line
     while (getline(openFile, line)) {
+      // inside ()?
+      bool caged = false;
+      int cagedDepht = 0;
       std::string lastWord = "";
       std::string word = "";
+
+      std::string parameters;
       int wordCount = 0;
       std::string::iterator it = line.begin();
       while (it != line.end()) {
-        if ((*it) == ' ') {
-          wordCount++;
-          // std::cout << word << std::endl;
-          lastWord = word;
-          word = "";
-        }
-        if ((*it) == ';') {
-          if (!checkIfContainsWord(variables, word)) {
-            variables.push_back(word);
-          }
-        } else
+        if ((*it) == '(') {
+          caged = true;
+          cagedDepht++;
           word += (*it);
+          it++;
+          continue;
+        } else if ((*it) == ')') {
+          cagedDepht--;
+          word += parameters;
+          word += (*it);
+          it++;
+          continue;
+        }
+        if (cagedDepht == 0) {
+          if ((*it) == ' ') {
+            if (lastWord[0] != ' ' || (int)lastWord[0] != 0) {
+              wordCount++;
+            }
+            // std::cout << word << std::endl;
+            lastWord = word;
+            word = "";
+          } else if ((*it) == ';') {
+            wordCount++;
+            std::cout << wordCount << " : " << line << std::endl;
+            if (wordCount == 2)
+              if (!checkIfVectorContainsWord(variables, word)) {
+
+                variables.push_back(word);
+              }
+            break;
+          } else
+            word += (*it);
+        } else {
+          parameters += (*it);
+        }
         it++;
       }
+    }
+    std::vector<std::string>::iterator it = variables.begin();
+    while (it != variables.end()) {
+      std::cout << (*it) << std::endl;
+      it++;
     }
 
   } else {
@@ -74,7 +108,7 @@ void documentFile(std::string path) {
   openFile.close();
 }
 
-bool checkIfContainsWord(std::vector<std::string> v, std::string word) {
+bool checkIfVectorContainsWord(std::vector<std::string> v, std::string word) {
   std::vector<std::string>::iterator it = v.begin();
   while (it != v.end()) {
     if ((*it) == word)
@@ -83,4 +117,5 @@ bool checkIfContainsWord(std::vector<std::string> v, std::string word) {
   }
   return false;
 }
+bool checkIfWordContainsPart(std::string word, std::string part) {}
 void documentAllFiles() { std::cout << "Documenting all files" << std::endl; }
