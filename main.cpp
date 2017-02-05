@@ -1,6 +1,8 @@
-#include <fstream>
 #include <iostream>
+#include <malloc.h>
 #include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
@@ -14,129 +16,132 @@ bool checkIfVectorContainsWord(std::vector<std::string> v, std::string word);
 bool checkIfWordContainsPart(std::string word, std::string part);
 bool checkIfContainsPartOfWordInVector(std::vector<std::string> v,
                                        std::string word);
-std::string ss;
+std::string path;
 
 std::vector<std::string> variables;
 std::vector<std::string> functions;
 std::vector<std::string> bannedWords;
 std::vector<std::string> bannedParts;
 
-int main(int argc, char const *argv[]) {
+bool backup;
+bool all;
 
+int main(int argc, char const *argv[]) {
+  backup = false;
+  all = false;
   addBannedWords();
   addBannedParts();
-  if (argc > 1)
-    ss = argv[1];
-  else {
-    showHelp();
-    return 1;
-  }
-  switch (argc) {
-  case 1:
+  if (argc < 2) {
+    std::cout << argv[0] << std::endl;
     showHelp();
     return 0;
-    break;
-  case 2:
-    if (ss == "-all")
-      documentAllFiles();
-    else
-      documentFile(ss);
-    break;
   }
+  for (int i = 0; i < argc; i++) {
+    if (i == 1) {
+      path = argv[i];
+    }
+    if (argv[i] == "-all")
+      all = true;
+    if (argv[i] == "-b")
+      backup = true;
+  }
+  if (all)
+    documentAllFiles();
+  else
+    documentFile(path);
   return 0;
 }
 
 void showHelp() { std::cout << "usage: " << std::endl; }
 
 void documentFile(std::string path) {
-  std::cout << "reading file" << std::endl;
-  std::ifstream openFile;
-  openFile.open(path.c_str(), std::ifstream::in);
+  // allocation size and current position in line;
+  printf("%s", "Start file reading: ");
+  printf("%s\n", path.c_str());
+  FILE *f;
+  f = fopen(path.c_str(), "r+");
+  if (f != NULL) {
+    int size = 1024, pos;
+    int c;
+    char *buffer = (char *)malloc(size);
+    bool caged = false;
+    int cagedDepht = 0;
+    int wordCount = 0;
+    pos = 0;
+    std::string word = "";
+    std::string lastWord = "";
+    std::string parameters = "";
+    do {
+      c = fgetc(f);
+      bool shouldAdd = true;
 
-  std::string line;
-  if (openFile.is_open()) {
-    // get line
-    while (getline(openFile, line)) {
-      // inside ()?
-      bool caged = false;
-      int cagedDepht = 0;
-      std::string lastWord = "";
-      std::string word = "";
-
-      std::string parameters;
-      int wordCount;
-      wordCount = 1;
-      std::string::iterator it = line.begin();
-      while (it != line.end()) {
-        if ((*it) == '(') {
-          caged = true;
-          cagedDepht++;
-          word += (*it);
-          it++;
-          continue;
-        } else if ((*it) == ')') {
-          cagedDepht--;
-          if (checkIfWordContainsPart(parameters, " ") ||
-              parameters.length() == 0)
-            word += parameters;
-          else
-            break;
-          word += (*it);
-          it++;
-          continue;
-        }
-        if (cagedDepht == 0) {
-          if ((int)(*it) == 32) {
-            if ((int)lastWord[0] != 0) {
-              wordCount++;
-            }
-            // std::cout << word << std::endl;
-
-            lastWord = word;
-            word = "";
-          } else if ((*it) == ';') {
-            wordCount++;
-            std::cout << wordCount << " : " << line << std::endl;
-            if (wordCount == 2)
-              if (!checkIfVectorContainsWord(variables, word) &&
-                  !checkIfVectorContainsWord(functions, word) &&
-                  !checkIfVectorContainsWord(bannedWords, lastWord) &&
-                  !checkIfVectorContainsWord(bannedWords, word) &&
-                  !checkIfContainsPartOfWordInVector(bannedParts, word) &&
-                  !checkIfContainsPartOfWordInVector(bannedParts, lastWord)) {
-                if (checkIfWordContainsPart(word, "(")) {
-                  functions.push_back(word);
-                } else
-                  variables.push_back(word);
-              }
-            break;
-          } else
-            word += (*it);
-        } else {
-          parameters += (*it);
-        }
-        it++;
+      if (c == '(') {
+        caged = true;
+        cagedDepht++;
+        word += c;
+        buffer[pos++] = c;
+        continue;
+      } else if (c == ')') {
+        cagedDepht--;
+        if (checkIfWordContainsPart(parameters, " ") ||
+            parameters.length() == 0)
+          word += parameters;
+        buffer[pos++] = c;
       }
-    }
+      if (cagedDepht == 0) {
+        if (c == 32) {
+          if (buffer[pos] != 0) {
+            wordCount++;
+          }
+          // std::cout << word << std::endl;
+
+          lastWord = word;
+          word = "";
+        } else if (c == ';') {
+          wordCount++;
+          if (wordCount == 2)
+            if (!checkIfVectorContainsWord(variables, word) &&
+                !checkIfVectorContainsWord(functions, word) &&
+                !checkIfVectorContainsWord(bannedWords, lastWord) &&
+                !checkIfVectorContainsWord(bannedWords, word) &&
+                !checkIfContainsPartOfWordInVector(bannedParts, word) &&
+                !checkIfContainsPartOfWordInVector(bannedParts, lastWord)) {
+              if (checkIfWordContainsPart(word, "(")) {
+                functions.push_back(word);
+              } else
+                variables.push_back(word);
+            }
+        } else
+          word += c;
+      } else {
+        parameters += c;
+      }
+      if (c != EOF) {
+        buffer[pos++] = (char)c;
+      }
+    } while (c != EOF);
+    printf("%s\n", buffer);
+    // printf("%s", buffer);
     std::cout << "\nVariables:" << std::endl;
     std::vector<std::string>::iterator it = variables.begin();
     while (it != variables.end()) {
       std::cout << (*it) << std::endl;
       it++;
     }
-
     std::cout << "\nFunctions:" << std::endl;
     std::vector<std::string>::iterator jt = functions.begin();
     while (jt != functions.end()) {
       std::cout << (*jt) << std::endl;
       jt++;
     }
-
+    fclose(f);
+    free(buffer);
   } else {
-    std::cout << "File not found" << std::endl;
+    printf("%s", "File doesn't exist : ");
+    perror("open");
+    free(buffer);
     return;
   }
-  openFile.close();
 }
 
 bool checkIfVectorContainsWord(std::vector<std::string> v, std::string word) {
@@ -186,6 +191,8 @@ void addBannedParts() {
   bannedParts.push_back(".");
   bannedParts.push_back("++");
   bannedParts.push_back("--");
+  bannedParts.push_back("}");
+  bannedParts.push_back("{");
 }
 
 void documentAllFiles() { std::cout << "Documenting all files" << std::endl; }
