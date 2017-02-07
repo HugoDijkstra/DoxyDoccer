@@ -1,5 +1,6 @@
 #include <iostream>
 #include <malloc.h>
+#include <map>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,41 +91,60 @@ void documentFile(std::string path) {
   printf("%s\n", path.c_str());
   FILE *f;
   f = fopen(path.c_str(), "r+");
-
+  std::map<int, Line *> lines;
   int size = 1024, pos;
   int c;
   char *buffer = (char *)malloc(size);
   if (f != NULL) {
     bool caged = false;
+    bool sentenceStart = false;
     int cagedDepht = 0;
     int wordCount = 0;
+    int lineCount;
     pos = 0;
     std::string word = "";
     std::string lastWord = "";
     std::string parameters = "";
+    Line *l = new Line();
 
     do {
       c = fgetc(f);
       if (c == EOF)
         continue;
 
-      std::cout << c << ": " << (char)c << std::endl;
-
+      if (c != 32)
+        sentenceStart = true;
+      if (!sentenceStart)
+        continue;
       bool shouldAdd = true;
       if (c == 32)
         if ((int)buffer[pos] == 32) {
           shouldAdd = false;
         }
 
-      if (shouldAdd)
+      if (c == '\n') {
+        lines.emplace(lineCount++, l);
+        l = new Line();
+        sentenceStart = false;
+      }
+      if (shouldAdd && sentenceStart) {
         buffer[pos++] = (char)c;
+        l->line += (char)c;
+        printf("%c\n", c);
+      }
       if (pos == size - 1) {
         size *= 2;
         buffer = (char *)realloc(buffer, size);
       }
     } while (c != EOF);
-    printf("%s\n", buffer);
 
+    std::map<int, Line *>::iterator it;
+    int curline = 0;
+    it = lines.find(curline);
+    while (curline <= lines.size()) {
+      std::cout << it->second->line << std::endl;
+      it = lines.find(curline++);
+    }
     fclose(f);
     delete buffer;
   } else {
