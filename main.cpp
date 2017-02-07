@@ -1,5 +1,6 @@
 #include <iostream>
 #include <malloc.h>
+#include <map>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,21 +61,45 @@ void documentFile(std::string path) {
   printf("%s\n", path.c_str());
   FILE *f;
   f = fopen(path.c_str(), "r+");
+<<<<<<< HEAD
+=======
+  std::map<int, Line *> lines;
+  int size = 1024, pos;
+  int c;
+  char *buffer = (char *)malloc(size);
+>>>>>>> e3e570a... Added -std=c++11 to makefile and adding strings to lines
   if (f != NULL) {
     int size = 1024, pos;
     int c;
     char *buffer = (char *)malloc(size);
     bool caged = false;
+    bool sentenceStart = false;
     int cagedDepht = 0;
     int wordCount = 0;
+    int lineCount;
     pos = 0;
     std::string word = "";
     std::string lastWord = "";
     std::string parameters = "";
+<<<<<<< HEAD
     do {
       c = fgetc(f);
+=======
+    Line *l = new Line();
+
+    do {
+      c = fgetc(f);
+      if (c == EOF)
+        continue;
+
+      if (c != 32)
+        sentenceStart = true;
+      if (!sentenceStart)
+        continue;
+>>>>>>> e3e570a... Added -std=c++11 to makefile and adding strings to lines
       bool shouldAdd = true;
 
+<<<<<<< HEAD
       if (c == '(') {
         caged = true;
         cagedDepht++;
@@ -133,6 +158,30 @@ void documentFile(std::string path) {
     while (jt != functions.end()) {
       std::cout << (*jt) << std::endl;
       jt++;
+=======
+      if (c == '\n') {
+        lines.emplace(lineCount++, l);
+        l = new Line();
+        sentenceStart = false;
+      }
+      if (shouldAdd && sentenceStart) {
+        buffer[pos++] = (char)c;
+        l->line += (char)c;
+        printf("%c\n", c);
+      }
+      if (pos == size - 1) {
+        size *= 2;
+        buffer = (char *)realloc(buffer, size);
+      }
+    } while (c != EOF);
+
+    std::map<int, Line *>::iterator it;
+    int curline = 0;
+    it = lines.find(curline);
+    while (curline <= lines.size()) {
+      std::cout << it->second->line << std::endl;
+      it = lines.find(curline++);
+>>>>>>> e3e570a... Added -std=c++11 to makefile and adding strings to lines
     }
     fclose(f);
     free(buffer);
