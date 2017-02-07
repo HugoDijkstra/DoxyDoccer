@@ -23,7 +23,7 @@ std::vector<std::string> functions;
 std::vector<std::string> bannedWords;
 std::vector<std::string> bannedParts;
 
-struct line {
+struct Line {
   Line() {
     hasType = false;
     hasName = false;
@@ -35,7 +35,7 @@ struct line {
   }
   bool hasType;
   bool hasName;
-  bool hadDef;
+  bool hasDef;
   bool hasBracket;
   bool hasCurlyBracket;
   bool hasSquareBracket;
@@ -112,7 +112,7 @@ void documentFile(std::string path) {
 
       bool shouldAdd = true;
       if (c == 32)
-        if (int)buffer[pos] == 32) {
+        if ((int)buffer[pos] == 32) {
           shouldAdd = false;
         }
 
