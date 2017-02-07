@@ -1,4 +1,4 @@
-z #include<iostream>
+#include <iostream>
 #include <malloc.h>
 #include <sstream>
 #include <stdio.h>
@@ -6,7 +6,7 @@ z #include<iostream>
 #include <string>
 #include <vector>
 
-    void showHelp();
+void showHelp();
 void documentFile(std::string path);
 void documentAllFiles();
 void addBannedWords();
