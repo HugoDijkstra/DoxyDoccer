@@ -23,6 +23,36 @@ std::vector<std::string> functions;
 std::vector<std::string> bannedWords;
 std::vector<std::string> bannedParts;
 
+struct line {
+  Line() {
+    hasType = false;
+    hasName = false;
+    hasDef = false;
+    hasBracket = false;
+    hasCurlyBracket = false;
+    hasSquareBracket = false;
+    line = "";
+  }
+  bool hasType;
+  bool hasName;
+  bool hadDef;
+  bool hasBracket;
+  bool hasCurlyBracket;
+  bool hasSquareBracket;
+  std::string line;
+  // not defining = 0; variable = 1; function = 2;
+  int getLineType() {
+    if (!hasType || hasName)
+      return 0;
+    if (hasType && hasName) {
+      if (hasBracket) {
+        return 2;
+      } else
+        return 1;
+    }
+  }
+};
+
 bool backup;
 bool all;
 
@@ -72,6 +102,7 @@ void documentFile(std::string path) {
     std::string word = "";
     std::string lastWord = "";
     std::string parameters = "";
+
     do {
       c = fgetc(f);
       if (c == EOF)
